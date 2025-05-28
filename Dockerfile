@@ -1,32 +1,24 @@
 FROM php:8.2-apache
 
 # Instala dependencias necesarias
-RUN apt-get update && apt-get install -y \
-    unzip \
-    git \
-    libzip-dev \
-    zip \
-    curl \
-    && docker-php-ext-install pdo pdo_mysql
+RUN apt-get update && \
+    apt-get install -y libzip-dev zip libicu-dev && \
+    docker-php-ext-install intl
 
 # Instala Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copia archivos de la app
-COPY . /var/www/html/
+# Copia los archivos del proyecto
+COPY . /var/www/html
 
-# Instala dependencias de PHP
+# Define directorio de trabajo
 WORKDIR /var/www/html
+
+# Instala dependencias PHP
 RUN composer install --no-dev --optimize-autoloader
 
-# Habilita rewrite y headers
-RUN a2enmod rewrite headers
+# Habilita módulos de Apache
+RUN a2enmod rewrite
 
-# Copia archivo de configuración de Apache si tienes uno (opcional)
-# COPY apache.conf /etc/apache2/sites-available/000-default.conf
-
-# Establece permisos (opcional)
-RUN chown -R www-data:www-data /var/www/html
-
-# Expone el puerto
+# Exponer el puerto
 EXPOSE 80
