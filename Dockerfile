@@ -1,17 +1,29 @@
-# Usa PHP con Apache
 FROM php:8.2-apache
 
-# Instala extensiones necesarias
-RUN docker-php-ext-install pdo pdo_mysql
+# Instala dependencias necesarias
+RUN apt-get update && apt-get install -y \
+    unzip \
+    git \
+    libzip-dev \
+    zip \
+    curl \
+    && docker-php-ext-install pdo pdo_mysql
 
-# Copia archivos al contenedor
+# Instala Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Copia archivos de la app
 COPY . /var/www/html/
 
-# Habilita rewrite para CodeIgniter
-RUN a2enmod rewrite
+# Instala dependencias de PHP
+WORKDIR /var/www/html
+RUN composer install --no-dev --optimize-autoloader
 
-# Reemplaza el archivo de configuración de Apache
-COPY apache.conf /etc/apache2/sites-available/000-default.conf
+# Habilita módulos de Apache
+RUN a2enmod rewrite headers
 
-# Da permisos
-RUN chown -R www-data:www-data /var/www/html/writable
+# Establece permisos adecuados
+RUN chown -R www-data:www-data /var/www/html
+
+# Puerto expuesto
+EXPOSE 80
