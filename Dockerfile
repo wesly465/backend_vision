@@ -1,29 +1,21 @@
+# Usa PHP con Apache
 FROM php:8.2-apache
 
-# Instala dependencias necesarias
-RUN apt-get update && apt-get install -y \
-    unzip \
-    git \
-    libzip-dev \
-    zip \
-    curl \
-    && docker-php-ext-install pdo pdo_mysql
-
+# Habilita módulos necesarios
+RUN docker-php-ext-install pdo pdo_mysql
 # Instala Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-# Copia archivos de la app
+# Copia archivos al contenedor
 COPY . /var/www/html/
 
-# Instala dependencias de PHP
-WORKDIR /var/www/html
-RUN composer install --no-dev --optimize-autoloader
-
-# Habilita módulos de Apache
+# Habilita rewrite y headers
 RUN a2enmod rewrite headers
 
-# Establece permisos adecuados
+# Copia archivo de configuración de Apache si tienes uno (opcional)
+# COPY apache.conf /etc/apache2/sites-available/000-default.conf
+
+# Establece permisos (opcional)
 RUN chown -R www-data:www-data /var/www/html
 
-# Puerto expuesto
+# Expone el puerto
 EXPOSE 80
