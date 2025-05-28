@@ -13,7 +13,7 @@ class Vision extends ResourceController
             return $this->failValidationErrors('Imagen no proporcionada');
         }
 
-        $apiKey = getenv('GOOGLE_VISION_API_KEY');
+        $apiKey = env('GOOGLE_VISION_API_KEY');
         if (!$apiKey) {
             return $this->failServerError('API key no configurada en el backend.');
         }
